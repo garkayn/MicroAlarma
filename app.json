@@ -16,7 +16,13 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.garkayn1.MicroAlarma",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDBXKpxcaTOeGYJZszbtESc680ZIH2heic"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +39,23 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-maps",
+        {
+          "requestLocationPermission": true,
+          "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2d21d992-b712-473e-984c-8226e7af828d"
+      }
     }
   }
 }
