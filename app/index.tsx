@@ -1,13 +1,23 @@
 import useLocation from "@/hooks/useLocation";
+import { useAudioPlayer } from 'expo-audio';
 import { AppleMaps, GoogleMaps } from 'expo-maps';
 import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
 import { useState } from 'react';
-import { Platform, StyleSheet, Text } from 'react-native';
+import { Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
 
+const audioSource = require('../assets/ringtone.mp3');
 
 export default function HomeScreen() {
-  const { latitude, longitude, errorMsg } = useLocation(); // mostrar errorMsg cuando no se den permisos
 
+  // Alarma
+  const player = useAudioPlayer(audioSource);
+
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
+  // Coordenadas usuario
+  const  { latitude, longitude, errorMsg } = useLocation(); // mostrar errorMsg cuando no se den permisos
+
+  // Calculo distancia entre 2 coordenadas
   const haversine = require('haversine')
 
   const start = {
@@ -15,6 +25,7 @@ export default function HomeScreen() {
     longitude: longitude
   }
 
+  // Hook para crear y cambiar el estado del marcador en el mapa
   const [destinationMarker, setDestinationMarker] = useState<{
     coordinates: { latitude: number; longitude: number };
     title: string;
@@ -44,8 +55,8 @@ export default function HomeScreen() {
             selectionEnabled: true,
             isMyLocationEnabled: true,
             isTrafficEnabled: true,
-          }}
-          onMapClick={(e) => {
+              }}
+              onMapClick={(e) => {
             // Coordenadas destino
             const end = {
               latitude: e.latitude,
@@ -54,8 +65,11 @@ export default function HomeScreen() {
 
             // Calculo distancia usuario-destin
             const distancia = haversine(start, end, {unit: 'meter'})
-            if (distancia <= 100) {
+            if (distancia <= 200) {
               console.log(distancia)
+              Vibration.vibrate([1000, 1000], true);
+              player.play()
+              setIsPlaying(true)
             }
             // Creación propiedades marker
             setDestinationMarker({
@@ -63,13 +77,21 @@ export default function HomeScreen() {
               title: "Destino",
               draggable: false,
             });
-          }}
-          
-          markers={destinationMarker ? [destinationMarker] : []}
-          
-
-        />
-      </>     
+              }}
+              markers={destinationMarker ? [destinationMarker] : []}
+            />
+            // Se utiliza hook para condicionar la aparición del botón para detener la alarma
+            {isPlaying && (
+              <Button
+              title="Detener sonido"
+              onPress={() => {
+                player.pause();
+                Vibration.cancel();
+                setIsPlaying(false);
+            }}
+          />
+        )}
+      </>
     );
   } else {
     return <Text>Maps are only available on Android and iOS</Text>;
