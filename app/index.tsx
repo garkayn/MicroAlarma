@@ -8,6 +8,13 @@ import { Platform, StyleSheet, Text } from 'react-native';
 export default function HomeScreen() {
   const { latitude, longitude, errorMsg } = useLocation(); // mostrar errorMsg cuando no se den permisos
 
+  const haversine = require('haversine')
+
+  const start = {
+    latitude: latitude,
+    longitude: longitude
+  }
+
   const [destinationMarker, setDestinationMarker] = useState<{
     coordinates: { latitude: number; longitude: number };
     title: string;
@@ -35,10 +42,22 @@ export default function HomeScreen() {
             isIndoorEnabled: true,
             mapType: GoogleMapsMapType.NORMAL,
             selectionEnabled: true,
-            isMyLocationEnabled: true, // faltan permisos
+            isMyLocationEnabled: true,
             isTrafficEnabled: true,
           }}
           onMapClick={(e) => {
+            // Coordenadas destino
+            const end = {
+              latitude: e.latitude,
+              longitude: e.longitude
+            }
+
+            // Calculo distancia usuario-destin
+            const distancia = haversine(start, end, {unit: 'meter'})
+            if (distancia <= 100) {
+              console.log(distancia)
+            }
+            // Creación propiedades marker
             setDestinationMarker({
               coordinates: { latitude: e.latitude, longitude: e.longitude },
               title: "Destino",
@@ -47,8 +66,10 @@ export default function HomeScreen() {
           }}
           
           markers={destinationMarker ? [destinationMarker] : []}
+          
+
         />
-      </>
+      </>     
     );
   } else {
     return <Text>Maps are only available on Android and iOS</Text>;
