@@ -1,18 +1,61 @@
 import useLocation from "@/hooks/useLocation";
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer } from 'expo-audio';
 import { AppleMaps, GoogleMaps } from 'expo-maps';
 import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
 import { useState } from 'react';
 import { Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
 
-const audioSource = require('../assets/ringtone.mp3');
-
 export default function HomeScreen() {
+
+  const audioSource = require('../assets/ringtone.mp3');
+
+  const STORAGE_KEY = '@user_preferred_destinations';
+
+  interface Destination {
+    id: string;
+    name: string;
+    coordinates: { latitude: number; longitude: number; };
+  }
+
+  /* 
+  Guarda un array de destinos en AsyncStorage.
+  @param {Destination} destinations - El array de destinos a guardar.
+  @returns {Promise<void>} Una promesa que se resuelve cuando la operación se completa.
+  
+  const saveDestinations = async (destinations: Destination): Promise<void> => {
+      try {
+          const jsonValue = JSON.stringify(destinations);
+          await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+          console.log('Destinos guardados exitosamente.');
+      } catch (e) {
+          console.error('Error al guardar los destinos:', e);
+      }
+  };
+  */
+
+  /*
+  Recupera todos los destinos guardados de AsyncStorage.
+  @returns {Promise<Destination | null>} Una promesa que se resuelve con el array de destinos o null si no hay datos.
+  
+  const getDestinations = async (): Promise<Destination | null> => {
+      try {
+          const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+          // Es crucial verificar si jsonValue es null antes de intentar JSON.parse()
+          return jsonValue!= null? JSON.parse(jsonValue) : null;
+      } catch (e) {
+          console.error('Error al recuperar los destinos:', e);
+          return null; // Retorna null o un array vacío en caso de error
+      }
+  };
+  */
 
   // Alarma
   const player = useAudioPlayer(audioSource);
 
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
+  const [isSaved, setIsSaved] = useState<boolean | undefined>(undefined);
 
   // Coordenadas usuario
   const  { latitude, longitude, errorMsg } = useLocation(); // mostrar errorMsg cuando no se den permisos
@@ -55,7 +98,11 @@ export default function HomeScreen() {
           isMyLocationEnabled: true,
           isTrafficEnabled: true,
         }}
+        uiSettings={{
+          zoomControlsEnabled: false,
+        }}
         onMapClick={(e) => {
+          setIsSaved(false)
           // Coordenadas destino
           const end = {
             latitude: e.latitude,
@@ -77,6 +124,7 @@ export default function HomeScreen() {
           });
         }}
         onPOIClick={(e)=>{
+          setIsSaved(false)
           // Coordenadas destino
           const end = {
             latitude: e.coordinates.latitude,
@@ -97,30 +145,25 @@ export default function HomeScreen() {
             showCallout: false,
             });
           }}
-          markers={destinationMarker ? [destinationMarker] : []}
-          polylines={
-            destinationMarker
-            ? [
-              {
-                coordinates: [
-                { latitude, longitude },
-                { latitude: destinationMarker.coordinates.latitude, longitude: destinationMarker.coordinates.longitude },
-                ],
-                color: "#FF0000",
-                width: 4,
-              },
-              ]
-            : []
-          }
-          />
-          // Se utiliza hook para condicionar la aparición del botón para detener la alarma
-          {isPlaying && (
-            <Button
+        markers={destinationMarker ? [destinationMarker] : []}
+        />
+        // Se utiliza hook para condicionar la aparición del botón para detener la alarma
+        {isPlaying && (
+          <Button
             title="Detener sonido"
             onPress={() => {
               player.pause();
               Vibration.cancel();
               setIsPlaying(false);
+            }}
+          />
+        )}
+        {isSaved == false && (
+          <Button
+            title="Guardar destino"
+            onPress={() => {
+              console.log("Guardado")
+              setIsSaved(true);
             }}
           />
         )}
