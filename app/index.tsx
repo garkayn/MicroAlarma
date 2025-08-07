@@ -28,8 +28,8 @@ export default function HomeScreen() {
   // Hook para crear y cambiar el estado del marcador en el mapa
   const [destinationMarker, setDestinationMarker] = useState<{
     coordinates: { latitude: number; longitude: number };
-    title: string;
     draggable: boolean;
+    showCallout: boolean;
   } | null>(null);
 
   const cameraPosition = {
@@ -44,50 +44,83 @@ export default function HomeScreen() {
     return <AppleMaps.View style={StyleSheet.absoluteFill} cameraPosition={cameraPosition} />
   } else if (Platform.OS === 'android') {
     return (
-      <>
-        <GoogleMaps.View 
-          style={StyleSheet.absoluteFill} 
-          cameraPosition={cameraPosition}
-          properties={{
-            isBuildingEnabled: true,
-            isIndoorEnabled: true,
-            mapType: GoogleMapsMapType.NORMAL,
-            selectionEnabled: true,
-            isMyLocationEnabled: true,
-            isTrafficEnabled: true,
-              }}
-              onMapClick={(e) => {
-            // Coordenadas destino
-            const end = {
-              latitude: e.latitude,
-              longitude: e.longitude
-            }
+      <><GoogleMaps.View 
+        style={StyleSheet.absoluteFill} 
+        cameraPosition={cameraPosition}
+        properties={{
+          isBuildingEnabled: true,
+          isIndoorEnabled: true,
+          mapType: GoogleMapsMapType.NORMAL,
+          selectionEnabled: true,
+          isMyLocationEnabled: true,
+          isTrafficEnabled: true,
+        }}
+        onMapClick={(e) => {
+          // Coordenadas destino
+          const end = {
+            latitude: e.latitude,
+            longitude: e.longitude
+          }
 
-            // Calculo distancia usuario-destin
-            const distancia = haversine(start, end, {unit: 'meter'})
-            if (distancia <= 200) {
-              console.log(distancia)
-              Vibration.vibrate([1000, 1000], true);
-              player.play()
-              setIsPlaying(true)
-            }
-            // Creación propiedades marker
+          // Calculo distancia usuario-destin
+          const distancia = haversine(start, end, {unit: 'meter'})
+          if (distancia <= 400) {
+            Vibration.vibrate([1000, 1000], true);
+            player.play()
+            setIsPlaying(true)
+          }
+          // Creación propiedades marker
+          setDestinationMarker({
+            coordinates: { latitude: e.latitude, longitude: e.longitude },
+            draggable: false,
+            showCallout: false,
+          });
+        }}
+        onPOIClick={(e)=>{
+          // Coordenadas destino
+          const end = {
+            latitude: e.coordinates.latitude,
+            longitude: e.coordinates.longitude
+          }
+
+          // Calculo distancia usuario-destin
+          const distancia = haversine(start, end, {unit: 'meter'})
+          if (distancia <= 400) {
+            Vibration.vibrate([1000, 1000], true);
+            player.play()
+            setIsPlaying(true)
+          }
+          // Creación propiedades marker
             setDestinationMarker({
-              coordinates: { latitude: e.latitude, longitude: e.longitude },
-              title: "Destino",
-              draggable: false,
+            coordinates: { latitude: e.coordinates.latitude, longitude: e.coordinates.longitude },
+            draggable: false,
+            showCallout: false,
             });
-              }}
-              markers={destinationMarker ? [destinationMarker] : []}
-            />
-            // Se utiliza hook para condicionar la aparición del botón para detener la alarma
-            {isPlaying && (
-              <Button
-              title="Detener sonido"
-              onPress={() => {
-                player.pause();
-                Vibration.cancel();
-                setIsPlaying(false);
+          }}
+          markers={destinationMarker ? [destinationMarker] : []}
+          polylines={
+            destinationMarker
+            ? [
+              {
+                coordinates: [
+                { latitude, longitude },
+                { latitude: destinationMarker.coordinates.latitude, longitude: destinationMarker.coordinates.longitude },
+                ],
+                color: "#FF0000",
+                width: 4,
+              },
+              ]
+            : []
+          }
+          />
+          // Se utiliza hook para condicionar la aparición del botón para detener la alarma
+          {isPlaying && (
+            <Button
+            title="Detener sonido"
+            onPress={() => {
+              player.pause();
+              Vibration.cancel();
+              setIsPlaying(false);
             }}
           />
         )}
