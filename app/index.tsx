@@ -1,10 +1,10 @@
 import useLocation from "@/hooks/useLocation";
-//import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAudioPlayer } from 'expo-audio';
-import { AppleMaps, GoogleMaps } from 'expo-maps';
+import { GoogleMaps } from 'expo-maps';
 import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
-import { useState } from 'react';
-import { Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
 
 export default function HomeScreen() {
 
@@ -18,37 +18,65 @@ export default function HomeScreen() {
     coordinates: { latitude: number; longitude: number; };
   }
 
-  /* 
-  Guarda un array de destinos en AsyncStorage.
-  @param {Destination} destinations - El array de destinos a guardar.
-  @returns {Promise<void>} Una promesa que se resuelve cuando la operación se completa.
-  
-  const saveDestinations = async (destinations: Destination): Promise<void> => {
-      try {
-          const jsonValue = JSON.stringify(destinations);
-          await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
-          console.log('Destinos guardados exitosamente.');
-      } catch (e) {
-          console.error('Error al guardar los destinos:', e);
-      }
-  };
-  */
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [name, setName] = useState("");
+  const [coordinates, setCoordinates] = useState<{coordinates: { latitude: number; longitude: number }} | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  /*
-  Recupera todos los destinos guardados de AsyncStorage.
-  @returns {Promise<Destination | null>} Una promesa que se resuelve con el array de destinos o null si no hay datos.
-  
-  const getDestinations = async (): Promise<Destination | null> => {
-      try {
-          const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-          // Es crucial verificar si jsonValue es null antes de intentar JSON.parse()
-          return jsonValue!= null? JSON.parse(jsonValue) : null;
-      } catch (e) {
-          console.error('Error al recuperar los destinos:', e);
-          return null; // Retorna null o un array vacío en caso de error
+  useEffect(() => {
+    loadDestinations();
+  }, []);
+
+  const loadDestinations = async () => {
+    try {
+      const storedDestinations = await AsyncStorage.getItem("destinations")
+      if (storedDestinations !== null) {
+        setDestinations(JSON.parse(storedDestinations));
       }
-  };
-  */
+    } catch(e) {
+      Alert.alert("Error", "Failed to Load destinations");
+    }
+  }
+
+  const saveDestinations = async (updatedDestinations: Destination[]) => {
+    try {
+      await AsyncStorage.setItem("destinations", JSON.stringify(updatedDestinations));
+    } catch (e) {
+      Alert.alert("Error", "Failde to save destinations")
+    }
+  }
+
+  const addDestination = () => {
+    if (editingId) {
+      // Update existing destination
+      const updatedDestinations = destinations.map((destination) =>
+        destination.id === editingId
+        ? { 
+            ...destination, 
+            name, 
+            coordinates: coordinates ? coordinates.coordinates : destination.coordinates
+          }
+        : destination
+      );
+      setDestinations(updatedDestinations);
+      saveDestinations(updatedDestinations);
+      setEditingId(null);
+    } else {
+      // Add new destination
+      const newDestination: Destination = {
+        id: Date.now().toString(),
+        name,
+        coordinates: coordinates ? coordinates.coordinates : { latitude: 0, longitude: 0 }
+      };
+      const updatedDestinations = [...destinations, newDestination];
+      setDestinations(updatedDestinations);
+      saveDestinations(updatedDestinations);
+    }
+
+    // Reset form
+    setName("");
+    setCoordinates(null);
+  }
 
   // Alarma
   const player = useAudioPlayer(audioSource);
@@ -83,11 +111,10 @@ export default function HomeScreen() {
     zoom: 15,
   };
 
-  if (Platform.OS === 'ios') {
-    return <AppleMaps.View style={StyleSheet.absoluteFill} cameraPosition={cameraPosition} />
-  } else if (Platform.OS === 'android') {
+    if (Platform.OS === 'android') {
     return (
       <><GoogleMaps.View 
+      
         style={StyleSheet.absoluteFill} 
         cameraPosition={cameraPosition}
         properties={{
@@ -122,6 +149,11 @@ export default function HomeScreen() {
             draggable: false,
             showCallout: false,
           });
+
+          setName("Destino")
+          setCoordinates({
+            coordinates: { latitude: e.latitude, longitude: e.longitude },
+          });
         }}
         onPOIClick={(e)=>{
           setIsSaved(false)
@@ -131,7 +163,7 @@ export default function HomeScreen() {
             longitude: e.coordinates.longitude
           }
 
-          // Calculo distancia usuario-destin
+          // Calculo distancia usuario-destino
           const distancia = haversine(start, end, {unit: 'meter'})
           if (distancia <= 400) {
             Vibration.vibrate([1000, 1000], true);
@@ -144,8 +176,14 @@ export default function HomeScreen() {
             draggable: false,
             showCallout: false,
             });
+
+            setName(e.name)
+            setCoordinates({
+            coordinates: { latitude: e.coordinates.latitude, longitude: e.coordinates.longitude },
+          });
           }}
         markers={destinationMarker ? [destinationMarker] : []}
+        
         />
         // Se utiliza hook para condicionar la aparición del botón para detener la alarma
         {isPlaying && (
@@ -163,6 +201,8 @@ export default function HomeScreen() {
             title="Guardar destino"
             onPress={() => {
               console.log("Guardado")
+                addDestination();
+                console.log("Current destinations:", destinations);
               setIsSaved(true);
             }}
           />
@@ -170,7 +210,7 @@ export default function HomeScreen() {
       </>
     );
   } else {
-    return <Text>Maps are only available on Android and iOS</Text>;
+    return <Text>Maps are only available on Android</Text>;
   }
 }
 
