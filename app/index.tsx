@@ -4,13 +4,18 @@ import { useAudioPlayer } from 'expo-audio';
 import { GoogleMaps } from 'expo-maps';
 import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
 import { useEffect, useState } from 'react';
-import { Alert, Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
+import { Alert, AppRegistry, Button, Platform, StyleSheet, Text, Vibration } from 'react-native';
+import SearchPlaces from '../utils/SearchPlaces';
+
+AppRegistry.registerComponent("MicroAlarma", () => SearchPlaces);
 
 export default function HomeScreen() {
 
   const audioSource = require('../assets/ringtone.mp3');
 
   const STORAGE_KEY = '@user_preferred_destinations';
+
+  const MAX_DESTINATIONS = 5;
 
   interface Destination {
     id: string;
@@ -29,7 +34,7 @@ export default function HomeScreen() {
 
   const loadDestinations = async () => {
     try {
-      const storedDestinations = await AsyncStorage.getItem("destinations")
+      const storedDestinations = await AsyncStorage.getItem(STORAGE_KEY)
       if (storedDestinations !== null) {
         setDestinations(JSON.parse(storedDestinations));
       }
@@ -40,14 +45,25 @@ export default function HomeScreen() {
 
   const saveDestinations = async (updatedDestinations: Destination[]) => {
     try {
-      await AsyncStorage.setItem("destinations", JSON.stringify(updatedDestinations));
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDestinations));
     } catch (e) {
-      Alert.alert("Error", "Failde to save destinations")
+      Alert.alert("Error", "Failed to save destinations")
     }
   }
 
   const addDestination = () => {
+    if(!editingId) {
+      if (destinations.length >= MAX_DESTINATIONS) {
+          Alert.alert(
+              "Límite Alcanzado", 
+              `Solo puedes guardar hasta ${MAX_DESTINATIONS} destinos. Se eliminará el destino más antiguo.`
+          );
+          deleteDestination()
+          return;
+      }  
+    }
     if (editingId) {
+
       // Update existing destination
       const updatedDestinations = destinations.map((destination) =>
         destination.id === editingId
@@ -77,6 +93,31 @@ export default function HomeScreen() {
     setName("");
     setCoordinates(null);
   }
+
+const deleteDestination = () => {
+  if (destinations.length === 0) {
+      Alert.alert("Error", "No hay destinos para eliminar.");
+      return;
+  }
+
+  // 1. Crear una copia de los destinos.
+  const currentDestinations = [...destinations];
+
+  // 2. Eliminar el primer elemento (índice 0) de la copia.
+  // El método .shift() elimina el primer elemento y lo retorna.
+  const deletedDestination = currentDestinations.shift(); 
+  
+  // 3. Actualizar el estado con el nuevo array y guardar.
+  setDestinations(currentDestinations);
+  saveDestinations(currentDestinations);
+
+  // 4. Proporcionar feedback
+  if (deletedDestination) {
+      Alert.alert("Éxito", `Destino "${deletedDestination.name}" (el primero en la lista) ha sido eliminado.`);
+  } else {
+      Alert.alert("Éxito", "El primer destino ha sido eliminado correctamente.");
+  }
+}
 
   // Alarma
   const player = useAudioPlayer(audioSource);
@@ -200,14 +241,15 @@ export default function HomeScreen() {
           <Button
             title="Guardar destino"
             onPress={() => {
-              console.log("Guardado")
-                addDestination();
-                console.log("Current destinations:", destinations);
+              addDestination();
+              console.log("Current destinations:", destinations);
               setIsSaved(true);
             }}
           />
         )}
-      </>
+        <SearchPlaces />
+
+        </>
     );
   } else {
     return <Text>Maps are only available on Android</Text>;
