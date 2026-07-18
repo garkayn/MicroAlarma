@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.garkayn1.MicroAlarma'
+    namespace 'com.impulso.microalarma'
     defaultConfig {
-        applicationId 'com.garkayn1.MicroAlarma'
+        applicationId 'com.impulso.microalarma'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -4,8 +4,34 @@ import { useAudioPlayer } from 'expo-audio';
 import { GoogleMaps } from 'expo-maps';
 import { GoogleMapsMapType } from "expo-maps/build/google/GoogleMaps.types";
 import { useEffect, useState } from 'react';
-import { Alert, Button, Platform, StyleSheet, Text, Vibration } from 'react-native'; //
+import { Alert, Button, PermissionsAndroid, Platform, StyleSheet, Text, Vibration } from 'react-native';
 export default function HomeScreen() {
+
+  const solicitarPermiso = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        ]);
+
+        const coarseGranted = granted['android.permission.ACCESS_COARSE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
+        const fineGranted = granted['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
+
+        if (fineGranted) {
+          console.log('El usuario otorgó permiso de ubicación PRECISA');
+        } else if (coarseGranted) {
+          console.log('El usuario otorgó permiso de ubicación APROXIMADA');
+        } else {
+          console.log('El usuario DENEGÓ los permisos de ubicación');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+  };
+
+  solicitarPermiso();
 
   const audioSource = require('../assets/ringtone.mp3');
 
@@ -184,7 +210,6 @@ export default function HomeScreen() {
         markers={destinationMarker ? [destinationMarker] : []}
         
         />
-        // Se utiliza hook para condicionar la aparición del botón para detener la alarma
         {isPlaying && (
           <Button
             title="Detener sonido"

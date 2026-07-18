@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.garkayn1.MicroAlarma",
+      "package": "com.impulso.microalarma",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDBXKpxcaTOeGYJZszbtESc680ZIH2heic"
