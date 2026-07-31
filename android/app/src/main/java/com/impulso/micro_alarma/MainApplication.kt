@@ -1,4 +1,4 @@
-package com.impulso.microalarma
+package com.impulso.micro_alarma
 
 import android.app.Application
 import android.content.res.Configuration

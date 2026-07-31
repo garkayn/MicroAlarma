@@ -18,6 +18,7 @@ export default function HomeScreen() {
         const coarseGranted = granted['android.permission.ACCESS_COARSE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
         const fineGranted = granted['android.permission.ACCESS_FINE_LOCATION'] === PermissionsAndroid.RESULTS.GRANTED;
 
+
         if (fineGranted) {
           console.log('El usuario otorgó permiso de ubicación PRECISA');
         } else if (coarseGranted) {

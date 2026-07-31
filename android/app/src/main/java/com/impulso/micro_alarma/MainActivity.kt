@@ -1,4 +1,4 @@
-package com.impulso.microalarma
+package com.impulso.micro_alarma
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
