@@ -20,7 +20,7 @@
       "package": "com.impulso.micro_alarma",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDBXKpxcaTOeGYJZszbtESc680ZIH2heic"
+          "apiKey": ""
         }
       }
     },

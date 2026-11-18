@@ -1,50 +1,34 @@
-# Welcome to your Expo app 👋
+# MicroAlarma
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Prototipo Android en React Native y Expo para seleccionar un punto en el mapa y avisar con sonido y vibración cuando el punto elegido queda dentro de 400 metros de la ubicación actual. Permite guardar destinos en el almacenamiento local del dispositivo.
 
-## Get started
+## Tecnologías
 
-1. Install dependencies
+- React Native 0.79 y Expo SDK 53
+- Expo Maps, Expo Location y Expo Audio
+- AsyncStorage para destinos guardados
+
+## Configuración y ejecución
+
+Se requiere Node.js y Android Studio con un emulador o un dispositivo Android. La vista de mapa de este proyecto está disponible solo en Android.
+
+1. Instala las dependencias:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Copia `.env.example` a `.env` y configura `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` con una clave restringida para la aplicación Android.
+3. Inicia Expo:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Para compilar una aplicación Android localmente, usa `npx expo run:android` con Android Studio y el SDK configurados.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Estado y limitaciones
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+La alarma del prototipo se activa al seleccionar un punto que ya está dentro del radio indicado. El código no mantiene una geocerca ni un servicio de ubicación en segundo plano para detectar automáticamente una llegada posterior. La clave de Maps debe restringirse por aplicación y API en Google Cloud; no guardes credenciales de Expo ni claves de firma en Git.
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Proyecto universitario. Añade los créditos del equipo y una captura de la aplicación antes de presentarlo como un proyecto terminado.

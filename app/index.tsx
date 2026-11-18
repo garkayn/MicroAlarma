@@ -32,11 +32,13 @@ export default function HomeScreen() {
     }
   };
 
-  solicitarPermiso();
+  useEffect(() => {
+    solicitarPermiso();
+  }, []);
 
   const audioSource = require('../assets/ringtone.mp3');
 
-  const STORAGE_KEY = '@user_preferred_destinations';
+  const STORAGE_KEY = 'destinations';
 
   interface Destination {
     id: string;
@@ -55,7 +57,7 @@ export default function HomeScreen() {
 
   const loadDestinations = async () => {
     try {
-      const storedDestinations = await AsyncStorage.getItem("destinations")
+      const storedDestinations = await AsyncStorage.getItem(STORAGE_KEY)
       if (storedDestinations !== null) {
         setDestinations(JSON.parse(storedDestinations));
       }
@@ -66,7 +68,7 @@ export default function HomeScreen() {
 
   const saveDestinations = async (updatedDestinations: Destination[]) => {
     try {
-      await AsyncStorage.setItem("destinations", JSON.stringify(updatedDestinations));
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedDestinations));
     } catch (e) {
       Alert.alert("Error", "Failde to save destinations")
     }
